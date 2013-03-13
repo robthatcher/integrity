@@ -1,0 +1,57 @@
+#!/bin/bash +x
+
+# Name: integrity - File integrity check tool.
+
+# Comment: Trivial integrity check system for critical file(s),
+# I've limited to 1 file hardcoded for simplicity.
+# Would suit an application platform config file, simply expanded
+# to cover more files, this script could run from cron and email admins i
+# if changes are detected.
+
+# Author: Rob Thatcher 2013 http://robthatcher.net
+
+VERSION='0.1'
+
+# TODO
+#
+# Add init check
+# Warn on re-init
+# Make alert capable
+
+# Vars - Vars
+
+INTDIR=/tmp/integrity
+SRCFILE0=/etc/hosts
+
+# Deal with Initialisations if needed then run check.
+
+case $1 in
+	-h|--help)
+		echo -e "\nPossible flags which may be passed are :\n\t"
+		echo -e "\t-h or --help for this help"
+		echo -e "\t-v or --version for version check"
+		echo -e "\t-i or --initialise setup reference md5sums\n"
+		exit 0;;
+	-v|--version)
+		echo -e "\nIntegrity checker version $VERSION\n" 
+		exit 0 ;;
+	-i|--initialise)
+		# Insert init check and warn here
+		mkdir -p $INTDIR
+		echo "Integrity Check monitored file states stored here" > $INTDIR/README
+		md5sum $SRCFILE0 > $INTDIR/SRCFILE0.int;;
+	*) 
+esac
+
+
+# Do Check
+
+md5sum $SRCFILE0 > $INTDIR/SRCFILE0.tmp
+diff $INTDIR/SRCFILE0.int $INTDIR/SRCFILE0.tmp 2>&1 >/dev/null
+RET=$?
+
+# Actions - Output to command line, alert, etc etc.
+
+[ $RET -eq 0 ] && echo -e "Live long, and prosper.."			# Success i.e. returncode 0
+[ $RET -ne 0 ] && echo -e "Panic station, warp core breach imminent.."	# Fail i.e. file has been modified nonzero returncode
+
